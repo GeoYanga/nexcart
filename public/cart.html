@@ -47,7 +47,6 @@
 </div>
 
 <script>
-const API='/api';
 async function init(){
   const r=await apiFetch(`${API}/auth/me`);
   if(!r.ok){window.location.href='/login.html';return;}
