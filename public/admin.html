@@ -170,8 +170,7 @@
         <option value="food">Food</option>
       </select>
     </div>
-    <div class="form-group"><label class="form-label">Image URL</label><input type="text" class="form-control" id="pImgUrl" placeholder="https://…" oninput="previewImg()"/></div>
-    <div class="form-group"><label class="form-label">Or Upload Image File</label><input type="file" class="form-control" id="pImg" accept="image/*" style="padding:0.3rem" onchange="previewImg()"/></div>
+    <div class="form-group"><label class="form-label">Image URL <span style="font-weight:400;color:var(--muted)">(paste a link from Unsplash, Imgur, etc.)</span></label><input type="text" class="form-control" id="pImgUrl" placeholder="https://images.unsplash.com/…" oninput="previewImg()"/></div>
     <div id="imgPreview" style="margin-bottom:0.75rem;display:none"><img id="imgPrev" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"/></div>
     <div style="display:flex;gap:0.6rem;margin-top:0.5rem">
       <button class="btn btn-primary" onclick="saveProduct()"><i class="fas fa-save"></i> Save Product</button>
@@ -329,7 +328,7 @@ function openProductModal(p){
   document.getElementById('pStock').value=p?p.stock:'';
   document.getElementById('pCategory').value=p?p.category||'other':'other';
   document.getElementById('pImgUrl').value=p?p.image_url||'':'';
-  document.getElementById('pImg').value='';
+  
   document.getElementById('pModalTitle').innerHTML=`<i class="fas fa-${p?'edit':'box'}" style="color:var(--brand)"></i> ${p?'Edit':'Add'} Product`;
   // preview
   if(p&&p.image_url){document.getElementById('imgPrev').src=p.image_url;document.getElementById('imgPreview').style.display='block';}
@@ -341,7 +340,7 @@ function previewImg(){
   const url=document.getElementById('pImgUrl').value.trim();
   const file=document.getElementById('pImg').files[0];
   if(url){document.getElementById('imgPrev').src=url;document.getElementById('imgPreview').style.display='block';}
-  else if(file){const reader=new FileReader();reader.onload=e=>{document.getElementById('imgPrev').src=e.target.result;document.getElementById('imgPreview').style.display='block';};reader.readAsDataURL(file);}
+  
   else document.getElementById('imgPreview').style.display='none';
 }
 
@@ -358,8 +357,7 @@ async function saveProduct(){
   form.append('stock',stock||'0');
   form.append('category',document.getElementById('pCategory').value);
   form.append('image_url',document.getElementById('pImgUrl').value.trim());
-  const file=document.getElementById('pImg').files[0];
-  if(file)form.append('image',file);
+
   const token=localStorage.getItem('nexcart_token');
   const r=await fetch(id?`${API}/products/${id}`:`${API}/products`,{method:id?'PUT':'POST',headers:token?{'Authorization':'Bearer '+token}:{},body:form});
   const d=await r.json();
