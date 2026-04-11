@@ -170,8 +170,20 @@
         <option value="food">Food</option>
       </select>
     </div>
-    <div class="form-group"><label class="form-label">Image URL <span style="font-weight:400;color:var(--muted)">(paste a link from Unsplash, Imgur, etc.)</span></label><input type="text" class="form-control" id="pImgUrl" placeholder="https://images.unsplash.com/…" oninput="previewImg()"/></div>
-    <div id="imgPreview" style="margin-bottom:0.75rem;display:none"><img id="imgPrev" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"/></div>
+    <div class="form-group">
+      <label class="form-label">Product Image</label>
+      <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
+        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:0.4rem;padding:0.55rem;border:1.5px dashed var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:0.82rem;font-weight:600;color:var(--mid);background:#fafafa;transition:all 0.15s" onmouseover="this.style.borderColor='var(--brand)'" onmouseout="this.style.borderColor='var(--border)'">
+          <i class="fas fa-upload" style="color:var(--brand)"></i> Upload Image
+          <input type="file" id="pImgFile" accept="image/*" style="display:none" onchange="handleImageUpload(this)"/>
+        </label>
+      </div>
+      <input type="text" class="form-control" id="pImgUrl" placeholder="Or paste image URL (https://…)" oninput="previewImg()" style="font-size:0.8rem"/>
+    </div>
+    <div id="imgPreview" style="margin-bottom:0.75rem;display:none">
+      <img id="imgPrev" style="width:100%;height:140px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"/>
+      <div id="uploadStatus" style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem;text-align:center"></div>
+    </div>
     <div style="display:flex;gap:0.6rem;margin-top:0.5rem">
       <button class="btn btn-primary" onclick="saveProduct()"><i class="fas fa-save"></i> Save Product</button>
       <button class="btn btn-outline" onclick="closeModal('productModal')">Cancel</button>
