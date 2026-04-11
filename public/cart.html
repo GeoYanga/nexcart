@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cart — NexCart</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="/auth.js"></script>
+</head>
+<body>
+<header>
+  <div class="header-top">
+    <a href="/" class="logo-area">
+      <div class="logo-icon-wrap"><i class="fas fa-bolt"></i></div>
+      <span class="logo-title">NexCart</span>
+    </a>
+    <div class="header-search">
+      <input type="text" placeholder="Search products…" autocomplete="off" onclick="window.location.href='/'"/>
+      <button class="header-search-btn"><i class="fas fa-search"></i></button>
+    </div>
+    <div class="header-actions">
+      <a href="/cart.html" class="hdr-btn">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="btn-label">Cart</span>
+      </a>
+      <a href="/profile.html" class="hdr-btn">
+        <i class="fas fa-user"></i>
+        <span class="btn-label">Account</span>
+      </a>
+      <button class="hdr-btn" onclick="logout()" title="Sign Out">
+        <i class="fas fa-sign-out-alt"></i>
+        <span class="btn-label">Logout</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div style="max-width:1100px;margin:0 auto;padding:1.5rem">
+  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem">
+    <a href="/" style="color:var(--mid);font-size:0.82rem;text-decoration:none">Home</a>
+    <span style="color:var(--muted)">›</span>
+    <span style="font-size:0.82rem;color:var(--dark);font-weight:600">Shopping Cart</span>
+  </div>
+  <div id="alertBox"></div>
+  <div id="cartContent"><div class="spinner"></div></div>
+</div>
+
+<script>
+const API='/api';
+async function init(){
+  const r=await apiFetch(`${API}/auth/me`);
+  if(!r.ok){window.location.href='/login.html';return;}
+  await loadCart();
+}
+async function loadCart(){
+  const r=await apiFetch(`${API}/cart`);const d=await r.json();renderCart(d);
+}
+function renderCart({items,total}){
+  const el=document.getElementById('cartContent');
+  if(!items||!items.length){
+    el.innerHTML=`<div style="text-align:center;padding:5rem 1rem;background:#fff;border-radius:12px;border:1px solid var(--border)">
+      <i class="fas fa-shopping-cart" style="font-size:3.5rem;color:var(--border);margin-bottom:1rem;display:block"></i>
+      <p style="color:var(--muted);margin-bottom:1.5rem;font-size:0.95rem">Your cart is empty</p>
+      <a href="/" class="btn btn-primary"><i class="fas fa-store"></i> Continue Shopping</a>
+    </div>`;return;
+  }
+  el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 290px;gap:1.25rem;align-items:start">
+    <div class="cart-card">
+      <div class="cart-card-head"><i class="fas fa-shopping-cart"></i> Cart (${items.length} item${items.length!==1?'s':''})</div>
+      <div style="padding:0.5rem">
+        ${items.map(i=>`
+        <div style="display:flex;align-items:center;gap:1rem;padding:0.9rem;border-bottom:1px solid var(--border)">
+          <img src="${i.image_url||''}" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80'" style="width:72px;height:72px;border-radius:8px;object-fit:cover;border:1px solid var(--border);flex-shrink:0"/>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:0.88rem;margin-bottom:0.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(i.name)}</div>
+            <div style="font-family:'Sora',sans-serif;font-size:1rem;font-weight:800;color:var(--brand)">₱${Number(i.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.4rem">
+            <button class="page-btn" onclick="upd(${i.id},${i.quantity-1})" ${i.quantity<=1?'disabled':''} style="padding:0.28rem 0.6rem">−</button>
+            <span style="min-width:1.75rem;text-align:center;font-weight:700;font-size:0.9rem">${i.quantity}</span>
+            <button class="page-btn" onclick="upd(${i.id},${i.quantity+1})" ${i.quantity>=i.stock?'disabled':''} style="padding:0.28rem 0.6rem">+</button>
+          </div>
+          <div style="font-weight:700;font-size:0.9rem;min-width:80px;text-align:right">₱${(i.price*i.quantity).toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
+          <button class="btn btn-danger btn-sm" onclick="del(${i.id})" style="flex-shrink:0"><i class="fas fa-trash"></i></button>
+        </div>`).join('')}
+      </div>
+      <div style="padding:0.85rem 1rem">
+        <a href="/" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Continue Shopping</a>
+      </div>
+    </div>
+    <div>
+      <div class="cart-card">
+        <div class="cart-card-head"><i class="fas fa-receipt"></i> Order Summary</div>
+        <div style="padding:1rem">
+          <div class="order-summary-item"><span>Subtotal</span><span>₱${Number(total).toLocaleString('en-PH',{minimumFractionDigits:2})}</span></div>
+          <div class="order-summary-item"><span>Shipping</span><span style="color:var(--teal);font-weight:600">Free</span></div>
+          <div class="order-summary-item"><span>Discount</span><span>—</span></div>
+          <div class="order-summary-total"><span>Total</span><span>₱${Number(total).toLocaleString('en-PH',{minimumFractionDigits:2})}</span></div>
+          <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:1rem" onclick="checkout()">
+            <i class="fas fa-credit-card"></i> Proceed to Checkout
+          </button>
+        </div>
+      </div>
+      <div class="cart-card" style="margin-top:0.85rem">
+        <div style="padding:0.85rem 1rem">
+          <div style="font-size:0.78rem;font-weight:600;color:var(--mid);margin-bottom:0.5rem">We Accept</div>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+            <span style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem;font-weight:600">GCash</span>
+            <span style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem;font-weight:600">PayMaya</span>
+            <span style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem;font-weight:600">COD</span>
+            <span style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem;font-weight:600">Bank Transfer</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+async function upd(id,qty){await apiFetch(`${API}/cart/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantity:qty})});await loadCart();}
+async function del(id){await apiFetch(`${API}/cart/${id}`,{method:'DELETE'});await loadCart();}
+async function checkout(){
+  const r=await apiFetch(`${API}/orders/checkout`,{method:'POST'});const d=await r.json();
+  if(!r.ok){document.getElementById('alertBox').innerHTML=`<div class="alert alert-error">${d.error}</div>`;return;}
+  document.getElementById('alertBox').innerHTML=`<div class="alert alert-success"><i class="fas fa-check-circle"></i> Order placed successfully! 🎉 Redirecting…</div>`;
+  setTimeout(()=>window.location.href='/profile.html',2000);
+}
+// logout() provided by auth.js
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+init();
+</script>
+</body>
+</html>

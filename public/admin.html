@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — NexCart</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="/auth.js"></script>
+  <style>
+    .stat-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-md);padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem}
+    .stat-icon{width:48px;height:48px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0}
+    .stat-val{font-family:'Sora',sans-serif;font-size:1.5rem;font-weight:800;color:var(--dark)}
+    .stat-label{font-size:0.75rem;color:var(--muted);font-weight:500}
+    .admin-nav{display:flex;background:#fff;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:1.5rem}
+    .admin-nav-btn{flex:1;padding:0.75rem;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.4rem;border-right:1px solid var(--border);transition:all 0.15s}
+    .admin-nav-btn:last-child{border-right:none}
+    .admin-nav-btn.active{background:var(--brand);color:#fff}
+    .admin-nav-btn:hover:not(.active){background:var(--brand-light);color:var(--brand)}
+  </style>
+</head>
+<body>
+
+<!-- ADMIN HEADER -->
+<header class="admin-header">
+  <div class="header-top">
+    <a href="/" class="logo-area">
+      <div class="logo-icon-wrap" style="background:rgba(255,255,255,0.15)"><i class="fas fa-shield-alt" style="color:#fff"></i></div>
+      <span class="logo-title">NexCart <span style="font-size:0.65rem;font-weight:500;opacity:0.7;letter-spacing:0.1em">ADMIN</span></span>
+    </a>
+    <div style="flex:1"></div>
+    <div class="header-actions">
+      <a href="/" class="hdr-btn" title="Back to Shop">
+        <i class="fas fa-store"></i>
+        <span class="btn-label">Shop</span>
+      </a>
+      <div class="hdr-avatar-wrap">
+        <button class="hdr-avatar" id="avatarBtn" onclick="toggleDD()"></button>
+        <div class="avatar-dropdown" id="avatarDD">
+          <div class="av-header">
+            <div class="av-info">
+              <div class="av-avatar-sm" id="avSmall"></div>
+              <div class="av-text">
+                <span class="uname" id="avName"></span>
+                <span class="handle" id="avHandle"></span>
+              </div>
+            </div>
+          </div>
+          <div class="av-menu">
+            <a href="/profile.html" class="av-item"><i class="fas fa-user"></i> My Profile</a>
+            <a href="/admin.html" class="av-item" style="background:var(--brand-light);color:var(--brand)"><i class="fas fa-cog"></i> Admin Panel</a>
+            <hr class="av-divider"/>
+            <button class="av-item danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div style="max-width:1300px;margin:0 auto;padding:1.5rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem">
+    <div>
+      <h1 style="font-family:'Sora',sans-serif;font-size:1.4rem;font-weight:800;color:var(--dark)">Admin Dashboard</h1>
+      <p style="font-size:0.82rem;color:var(--muted);margin-top:0.2rem">Manage your store</p>
+    </div>
+  </div>
+
+  <div id="alertBox" style="margin-bottom:1rem"></div>
+
+  <!-- STATS ROW -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.75rem" id="statsRow">
+    <div class="stat-card"><div class="stat-icon" style="background:#fff1ef"><i class="fas fa-users" style="color:var(--brand)"></i></div><div><div class="stat-val" id="statUsers">—</div><div class="stat-label">Total Users</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#d1fae5"><i class="fas fa-box" style="color:var(--teal)"></i></div><div><div class="stat-val" id="statProducts">—</div><div class="stat-label">Total Products</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#dbeafe"><i class="fas fa-receipt" style="color:#1d4ed8"></i></div><div><div class="stat-val" id="statOrders">—</div><div class="stat-label">Total Orders</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#fef3c7"><i class="fas fa-peso-sign" style="color:#92400e"></i></div><div><div class="stat-val" id="statRevenue">—</div><div class="stat-label">Revenue</div></div></div>
+  </div>
+
+  <!-- TAB NAV -->
+  <div class="admin-nav">
+    <button class="admin-nav-btn active" id="btnUsers" onclick="switchTab('users')"><i class="fas fa-users"></i> Users</button>
+    <button class="admin-nav-btn" id="btnProducts" onclick="switchTab('products')"><i class="fas fa-box"></i> Products</button>
+    <button class="admin-nav-btn" id="btnOrders" onclick="switchTab('orders')"><i class="fas fa-receipt"></i> Orders</button>
+  </div>
+
+  <!-- USERS PANEL -->
+  <div class="tab-panel active" id="usersPanel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
+      <span class="section-head" style="margin:0;border:none;padding:0"><i class="fas fa-users"></i> All Users</span>
+      <button class="btn btn-primary btn-sm" onclick="openUserModal()"><i class="fas fa-user-plus"></i> Add User</button>
+    </div>
+    <div id="usersTable"><div class="spinner"></div></div>
+  </div>
+
+  <!-- PRODUCTS PANEL -->
+  <div class="tab-panel" id="productsPanel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
+      <span class="section-head" style="margin:0;border:none;padding:0"><i class="fas fa-box"></i> All Products</span>
+      <button class="btn btn-primary btn-sm" onclick="openProductModal(null)"><i class="fas fa-plus"></i> Add Product</button>
+    </div>
+    <div id="productsTable"><div class="spinner"></div></div>
+  </div>
+
+  <!-- ORDERS PANEL -->
+  <div class="tab-panel" id="ordersPanel">
+    <div style="margin-bottom:1rem">
+      <span class="section-head" style="margin:0;border:none;padding:0"><i class="fas fa-receipt"></i> All Orders</span>
+    </div>
+    <div id="ordersTable"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- CREATE USER MODAL -->
+<div class="modal-overlay" id="userModal" onclick="if(event.target.id==='userModal')closeModal('userModal')">
+  <div class="modal">
+    <h2><i class="fas fa-user-plus" style="color:var(--brand)"></i> Create User</h2>
+    <div id="uAlert"></div>
+    <div class="form-group"><label class="form-label">Username</label><input type="text" class="form-control" id="uU" placeholder="johndoe"/></div>
+    <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-control" id="uE" placeholder="user@email.com"/></div>
+    <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-control" id="uP" placeholder="Min. 6 characters"/></div>
+    <div class="form-group"><label class="form-label">Role</label>
+      <select class="form-control" id="uR"><option value="user">User</option><option value="admin">Admin</option></select>
+    </div>
+    <div style="display:flex;gap:0.6rem;margin-top:0.75rem">
+      <button class="btn btn-primary" onclick="createUser()"><i class="fas fa-save"></i> Create</button>
+      <button class="btn btn-outline" onclick="closeModal('userModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT USER MODAL -->
+<div class="modal-overlay" id="editUserModal" onclick="if(event.target.id==='editUserModal')closeModal('editUserModal')">
+  <div class="modal">
+    <h2><i class="fas fa-user-edit" style="color:var(--brand)"></i> Edit User</h2>
+    <div id="euAlert"></div>
+    <input type="hidden" id="euId"/>
+    <div class="form-group"><label class="form-label">Username</label><input type="text" class="form-control" id="euU" placeholder="johndoe"/></div>
+    <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-control" id="euE" placeholder="user@email.com"/></div>
+    <div class="form-group"><label class="form-label">Role</label>
+      <select class="form-control" id="euR"><option value="user">User</option><option value="admin">Admin</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">New Password <span style="font-weight:400;color:var(--muted)">(leave blank to keep current)</span></label><input type="password" class="form-control" id="euP" placeholder="New password (optional)"/></div>
+    <div style="display:flex;gap:0.6rem;margin-top:0.75rem">
+      <button class="btn btn-primary" onclick="saveEditUser()"><i class="fas fa-save"></i> Save Changes</button>
+      <button class="btn btn-outline" onclick="closeModal('editUserModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="productModal" onclick="if(event.target.id==='productModal')closeModal('productModal')">
+  <div class="modal" style="max-width:520px">
+    <h2 id="pModalTitle"><i class="fas fa-box" style="color:var(--brand)"></i> Add Product</h2>
+    <div id="pAlert"></div>
+    <input type="hidden" id="pId"/>
+    <div class="form-group"><label class="form-label">Product Name *</label><input type="text" class="form-control" id="pName" placeholder="Product name"/></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="pDesc" rows="3" placeholder="Product description…"></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.85rem">
+      <div class="form-group"><label class="form-label">Price (₱) *</label><input type="number" class="form-control" id="pPrice" placeholder="0.00" step="0.01" min="0"/></div>
+      <div class="form-group"><label class="form-label">Stock *</label><input type="number" class="form-control" id="pStock" placeholder="0" min="0"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Category</label>
+      <select class="form-control" id="pCategory">
+        <option value="other">Other</option>
+        <option value="electronics">Electronics</option>
+        <option value="fashion">Fashion</option>
+        <option value="home">Home & Living</option>
+        <option value="beauty">Beauty</option>
+        <option value="sports">Sports</option>
+        <option value="food">Food</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Image URL</label><input type="text" class="form-control" id="pImgUrl" placeholder="https://…" oninput="previewImg()"/></div>
+    <div class="form-group"><label class="form-label">Or Upload Image File</label><input type="file" class="form-control" id="pImg" accept="image/*" style="padding:0.3rem" onchange="previewImg()"/></div>
+    <div id="imgPreview" style="margin-bottom:0.75rem;display:none"><img id="imgPrev" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"/></div>
+    <div style="display:flex;gap:0.6rem;margin-top:0.5rem">
+      <button class="btn btn-primary" onclick="saveProduct()"><i class="fas fa-save"></i> Save Product</button>
+      <button class="btn btn-outline" onclick="closeModal('productModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER ITEMS MODAL -->
+<div class="modal-overlay" id="oModal" onclick="if(event.target.id==='oModal')closeModal('oModal')">
+  <div class="modal">
+    <h2><i class="fas fa-receipt" style="color:var(--brand)"></i> Order #<span id="oModalId"></span></h2>
+    <div id="oBody" style="max-height:350px;overflow-y:auto"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeModal('oModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API='/api'; let me=null;
+
+async function init(){
+  const r=await apiFetch(`${API}/auth/me`);
+  if(!r.ok){window.location.href='/login.html';return;}
+  const d=await r.json();
+  if(d.user.role!=='admin'){window.location.href='/';return;}
+  me=d.user;
+  const i=me.username.charAt(0).toUpperCase();
+  document.getElementById('avatarBtn').textContent=i;
+  document.getElementById('avSmall').textContent=i;
+  document.getElementById('avName').textContent=me.username;
+  document.getElementById('avHandle').textContent='@'+me.username.toLowerCase();
+  await Promise.all([loadUsers(),loadProducts(),loadOrders()]);
+}
+
+/* ─── TAB SWITCHING ─── */
+function switchTab(tab){
+  ['users','products','orders'].forEach(t=>{
+    document.getElementById(`${t}Panel`).classList.toggle('active',t===tab);
+    document.getElementById(`btn${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.toggle('active',t===tab);
+  });
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function toggleDD(){document.getElementById('avatarDD').classList.toggle('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.hdr-avatar-wrap'))document.getElementById('avatarDD').classList.remove('open');});
+function showAlert(msg,type='success'){const el=document.getElementById('alertBox');el.innerHTML=`<div class="alert alert-${type}"><i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'}"></i> ${msg}</div>`;setTimeout(()=>el.innerHTML='',3500);}
+
+/* ─── USERS ─── */
+async function loadUsers(){
+  const r=await apiFetch(`${API}/users`);
+  if(!r.ok){document.getElementById('usersTable').innerHTML='<p style="color:var(--danger);padding:1rem">Failed to load users.</p>';return;}
+  const users=await r.json();
+  document.getElementById('statUsers').textContent=users.length;
+  if(!users.length){document.getElementById('usersTable').innerHTML='<p style="color:var(--muted);padding:1rem">No users found.</p>';return;}
+  document.getElementById('usersTable').innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>User</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+    <tbody>${users.map(u=>`<tr>
+      <td style="color:var(--muted)">${u.id}</td>
+      <td><div style="display:flex;align-items:center;gap:0.6rem">
+        <div style="width:32px;height:32px;border-radius:50%;background:${u.role==='admin'?'var(--brand)':'var(--teal)'};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0">${u.username.charAt(0).toUpperCase()}</div>
+        <strong>${esc(u.username)}</strong>${u.id===me.id?'<span style="font-size:0.7rem;background:var(--brand-light);color:var(--brand);padding:0.1rem 0.4rem;border-radius:10px;margin-left:0.3rem">You</span>':''}
+      </div></td>
+      <td style="color:var(--mid)">${esc(u.email)}</td>
+      <td><span class="badge ${u.role==='admin'?'badge-shipped':'badge-completed'}">${u.role.toUpperCase()}</span></td>
+      <td style="color:var(--muted)">${new Date(u.created_at).toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'})}</td>
+      <td><div style="display:flex;gap:0.4rem">
+        <button class="btn btn-outline btn-sm" onclick='openEditUserModal(${JSON.stringify(u)})'><i class="fas fa-edit"></i> Edit</button>
+        ${u.id!==me.id?`<button class="btn btn-danger btn-sm" onclick="delUser(${u.id})"><i class="fas fa-trash"></i></button>`:''}
+      </div></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function openUserModal(){
+  document.getElementById('uAlert').innerHTML='';
+  ['uU','uE','uP'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('uR').value='user';
+  openModal('userModal');
+}
+
+function openEditUserModal(u){
+  document.getElementById('euAlert').innerHTML='';
+  document.getElementById('euId').value=u.id;
+  document.getElementById('euU').value=u.username;
+  document.getElementById('euE').value=u.email;
+  document.getElementById('euR').value=u.role;
+  document.getElementById('euP').value='';
+  openModal('editUserModal');
+}
+
+async function createUser(){
+  const body={username:document.getElementById('uU').value.trim(),email:document.getElementById('uE').value.trim(),password:document.getElementById('uP').value,role:document.getElementById('uR').value};
+  if(!body.username||!body.email||!body.password){document.getElementById('uAlert').innerHTML='<div class="alert alert-error">All fields required.</div>';return;}
+  const r=await apiFetch(`${API}/users`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json();
+  if(!r.ok){document.getElementById('uAlert').innerHTML=`<div class="alert alert-error">${d.error}</div>`;return;}
+  closeModal('userModal');showAlert('User created successfully!');loadUsers();
+}
+
+async function saveEditUser(){
+  const id=document.getElementById('euId').value;
+  const body={username:document.getElementById('euU').value.trim(),email:document.getElementById('euE').value.trim(),role:document.getElementById('euR').value};
+  const pwd=document.getElementById('euP').value;
+  if(pwd)body.password=pwd;
+  if(!body.username||!body.email){document.getElementById('euAlert').innerHTML='<div class="alert alert-error">Username and email required.</div>';return;}
+  const r=await apiFetch(`${API}/users/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json();
+  if(!r.ok){document.getElementById('euAlert').innerHTML=`<div class="alert alert-error">${d.error||'Update failed.'}</div>`;return;}
+  closeModal('editUserModal');showAlert('User updated!');loadUsers();
+}
+
+async function delUser(id){
+  if(!confirm('Delete this user permanently?'))return;
+  const r=await apiFetch(`${API}/users/${id}`,{method:'DELETE'});
+  if(r.ok){showAlert('User deleted.');loadUsers();}
+  else showAlert('Failed to delete user.','error');
+}
+
+/* ─── PRODUCTS ─── */
+async function loadProducts(){
+  const r=await apiFetch(`${API}/products?limit=200`);
+  if(!r.ok){document.getElementById('productsTable').innerHTML='<p style="color:var(--danger);padding:1rem">Failed to load products.</p>';return;}
+  const d=await r.json();
+  document.getElementById('statProducts').textContent=d.total||d.products.length;
+  if(!d.products.length){document.getElementById('productsTable').innerHTML='<p style="color:var(--muted);padding:1rem">No products yet.</p>';return;}
+  document.getElementById('productsTable').innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Product</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>
+    <tbody>${d.products.map(p=>`<tr>
+      <td style="color:var(--muted)">${p.id}</td>
+      <td><div style="display:flex;align-items:center;gap:0.65rem">
+        <img src="${p.image_url||''}" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=60'" style="width:42px;height:42px;border-radius:8px;object-fit:cover;border:1px solid var(--border)"/>
+        <div><strong style="font-size:0.85rem">${esc(p.name)}</strong><div style="font-size:0.72rem;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.description||'')}</div></div>
+      </div></td>
+      <td style="font-weight:700;color:var(--brand)">₱${Number(p.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</td>
+      <td><span style="font-weight:700;color:${p.stock===0?'var(--danger)':p.stock<5?'var(--warning)':'var(--teal)'}">${p.stock}</span>
+        ${p.stock===0?'<span style="font-size:0.68rem;background:#fee2e2;color:#991b1b;padding:0.1rem 0.4rem;border-radius:10px;margin-left:0.3rem">Out</span>':p.stock<5?'<span style="font-size:0.68rem;background:#fef3c7;color:#92400e;padding:0.1rem 0.4rem;border-radius:10px;margin-left:0.3rem">Low</span>':''}
+      </td>
+      <td><div style="display:flex;gap:0.4rem">
+        <button class="btn btn-outline btn-sm" onclick='openProductModal(${JSON.stringify(p)})'><i class="fas fa-edit"></i> Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="delProduct(${p.id})"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function openProductModal(p){
+  document.getElementById('pAlert').innerHTML='';
+  document.getElementById('pId').value=p?p.id:'';
+  document.getElementById('pName').value=p?p.name:'';
+  document.getElementById('pDesc').value=p?p.description||'':'';
+  document.getElementById('pPrice').value=p?p.price:'';
+  document.getElementById('pStock').value=p?p.stock:'';
+  document.getElementById('pCategory').value=p?p.category||'other':'other';
+  document.getElementById('pImgUrl').value=p?p.image_url||'':'';
+  document.getElementById('pImg').value='';
+  document.getElementById('pModalTitle').innerHTML=`<i class="fas fa-${p?'edit':'box'}" style="color:var(--brand)"></i> ${p?'Edit':'Add'} Product`;
+  // preview
+  if(p&&p.image_url){document.getElementById('imgPrev').src=p.image_url;document.getElementById('imgPreview').style.display='block';}
+  else document.getElementById('imgPreview').style.display='none';
+  openModal('productModal');
+}
+
+function previewImg(){
+  const url=document.getElementById('pImgUrl').value.trim();
+  const file=document.getElementById('pImg').files[0];
+  if(url){document.getElementById('imgPrev').src=url;document.getElementById('imgPreview').style.display='block';}
+  else if(file){const reader=new FileReader();reader.onload=e=>{document.getElementById('imgPrev').src=e.target.result;document.getElementById('imgPreview').style.display='block';};reader.readAsDataURL(file);}
+  else document.getElementById('imgPreview').style.display='none';
+}
+
+async function saveProduct(){
+  const id=document.getElementById('pId').value;
+  const name=document.getElementById('pName').value.trim();
+  const price=document.getElementById('pPrice').value;
+  const stock=document.getElementById('pStock').value;
+  if(!name||!price){document.getElementById('pAlert').innerHTML='<div class="alert alert-error">Name and price are required.</div>';return;}
+  const form=new FormData();
+  form.append('name',name);
+  form.append('description',document.getElementById('pDesc').value.trim());
+  form.append('price',price);
+  form.append('stock',stock||'0');
+  form.append('category',document.getElementById('pCategory').value);
+  form.append('image_url',document.getElementById('pImgUrl').value.trim());
+  const file=document.getElementById('pImg').files[0];
+  if(file)form.append('image',file);
+  const token=localStorage.getItem('nexcart_token');
+  const r=await fetch(id?`${API}/products/${id}`:`${API}/products`,{method:id?'PUT':'POST',headers:token?{'Authorization':'Bearer '+token}:{},body:form});
+  const d=await r.json();
+  if(!r.ok){document.getElementById('pAlert').innerHTML=`<div class="alert alert-error">${d.error||'Save failed.'}</div>`;return;}
+  closeModal('productModal');showAlert(id?'Product updated!':'Product added!');loadProducts();
+}
+
+async function delProduct(id){
+  if(!confirm('Delete this product? This cannot be undone.'))return;
+  const r=await apiFetch(`${API}/products/${id}`,{method:'DELETE'});
+  if(r.ok){showAlert('Product deleted.');loadProducts();}
+  else showAlert('Failed to delete product.','error');
+}
+
+/* ─── ORDERS ─── */
+async function loadOrders(){
+  const r=await apiFetch(`${API}/orders/all`);
+  if(!r.ok){document.getElementById('ordersTable').innerHTML='<p style="color:var(--danger);padding:1rem">Failed to load orders.</p>';return;}
+  const orders=await r.json();
+  document.getElementById('statOrders').textContent=orders.length;
+  const rev=orders.reduce((s,o)=>s+Number(o.total_amount),0);
+  document.getElementById('statRevenue').textContent='₱'+rev.toLocaleString('en-PH',{minimumFractionDigits:2});
+  if(!orders.length){document.getElementById('ordersTable').innerHTML='<p style="color:var(--muted);padding:1rem">No orders yet.</p>';return;}
+  document.getElementById('ordersTable').innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody>${orders.map(o=>`<tr>
+      <td><strong>#${o.id}</strong></td>
+      <td style="color:var(--mid)">${esc(o.user_email||'—')}</td>
+      <td style="font-weight:700;color:var(--brand)">₱${Number(o.total_amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</td>
+      <td>
+        <select class="form-control" style="padding:0.28rem 0.5rem;font-size:0.78rem;width:130px;border-color:var(--border)" onchange="updStatus(${o.id},this.value)">
+          ${['pending','shipped','completed','cancelled'].map(s=>`<option value="${s}"${o.status===s?' selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+        </select>
+      </td>
+      <td style="color:var(--muted)">${new Date(o.created_at).toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'})}</td>
+      <td><button class="btn btn-outline btn-sm" onclick='viewOrder(${o.id},${JSON.stringify(o.items)})'><i class="fas fa-eye"></i> Items</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+async function updStatus(id,status){
+  const r=await apiFetch(`${API}/orders/${id}/status`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+  if(r.ok)showAlert('Order status updated!');
+  else showAlert('Failed to update status.','error');
+}
+
+function viewOrder(id,items){
+  document.getElementById('oModalId').textContent=id;
+  document.getElementById('oBody').innerHTML=items.map(i=>`
+    <div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+      <img src="${i.image_url||''}" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=60'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;border:1px solid var(--border)"/>
+      <div style="flex:1"><div style="font-weight:600;font-size:0.85rem">${esc(i.name)}</div><div style="font-size:0.75rem;color:var(--muted)">Qty: ${i.quantity} × ₱${Number(i.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</div></div>
+      <div style="font-weight:700;color:var(--brand)">₱${(i.price*i.quantity).toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
+    </div>`).join('');
+  openModal('oModal');
+}
+
+// logout() provided by auth.js
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+init();
+</script>
+</body>
+</html>

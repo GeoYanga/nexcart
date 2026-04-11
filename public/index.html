@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NexCart – Shop Everything</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="/auth.js"></script>
+  <style>
+    /* Price range slider */
+    .price-slider-wrap { padding: 0 0.25rem; }
+    .price-inputs { display:flex; align-items:center; gap:0.4rem; margin-bottom:0.75rem; }
+    .price-input {
+      flex:1; border:1.5px solid var(--border); border-radius:var(--radius-sm);
+      padding:0.38rem 0.5rem; font-family:'DM Sans',sans-serif; font-size:0.78rem;
+      color:var(--dark); background:#fff; outline:none; text-align:center; min-width:0;
+      transition: border-color 0.15s;
+    }
+    .price-input:focus { border-color:var(--brand); }
+
+    /* Category pills - active state on cat-link is brand colored */
+    .cat-link.active { color:var(--brand); border-bottom-color:var(--brand); font-weight:700; }
+
+    /* Sidebar filter state */
+    .sidebar-link.cat-active { background:var(--brand-light); color:var(--brand); font-weight:700; border-left:3px solid var(--brand); }
+
+    /* Empty state */
+    .empty-state { grid-column:1/-1; text-align:center; padding:4rem 1rem; }
+    .empty-state i { font-size:3rem; color:var(--border); display:block; margin-bottom:1rem; }
+    .empty-state p { color:var(--muted); margin-bottom:1rem; font-size:0.9rem; }
+
+    /* Active filter chips */
+    .filter-chips { display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:0.85rem; }
+    .filter-chip {
+      display:inline-flex; align-items:center; gap:0.3rem;
+      background:var(--brand-light); color:var(--brand);
+      border:1px solid #fdd6d1; border-radius:20px;
+      font-size:0.73rem; font-weight:600; padding:0.2rem 0.6rem;
+      cursor:pointer;
+    }
+    .filter-chip i { font-size:0.65rem; }
+    .filter-chip:hover { background:#fdd6d1; }
+  </style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="header-top">
+    <a href="/" class="logo-area">
+      <div class="logo-icon-wrap"><i class="fas fa-bolt"></i></div>
+      <span class="logo-title">NexCart</span>
+    </a>
+
+    <div class="header-search">
+      <input type="text" id="searchInput" placeholder="Search products, brands and more…" autocomplete="off"/>
+      <button class="header-search-btn" onclick="triggerSearch()"><i class="fas fa-search"></i></button>
+    </div>
+
+    <div class="header-actions">
+      <a href="/cart.html" class="hdr-btn" id="cartBtn" style="display:none">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="btn-label">Cart</span>
+        <span class="cart-badge" id="cartCount" style="display:none">0</span>
+      </a>
+      <div class="hdr-avatar-wrap" id="avatarWrap" style="display:none">
+        <button class="hdr-avatar" id="avatarBtn" onclick="toggleDD('avatarDD')"></button>
+        <div class="avatar-dropdown" id="avatarDD">
+          <div class="av-header">
+            <div class="av-info">
+              <div class="av-avatar-sm" id="avSmall"></div>
+              <div class="av-text">
+                <span class="uname" id="avName"></span>
+                <span class="handle" id="avHandle"></span>
+              </div>
+            </div>
+          </div>
+          <div class="av-menu">
+            <a href="/profile.html" class="av-item"><i class="fas fa-user"></i> My Account</a>
+            <a href="/cart.html" class="av-item"><i class="fas fa-shopping-bag"></i> My Orders</a>
+            <div id="adminNavLink" style="display:none">
+              <a href="/admin.html" class="av-item"><i class="fas fa-cog"></i> Admin Panel</a>
+            </div>
+            <hr class="av-divider"/>
+            <button class="av-item danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+          </div>
+        </div>
+      </div>
+      <div id="authBtns">
+        <a href="/login.html" class="btn-hdr-login"><i class="fas fa-user"></i> Login</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ CATEGORY NAV BAR ═══ -->
+<div class="cat-bar">
+  <div class="cat-bar-inner">
+    <a href="#" class="cat-link active" data-cat="" onclick="setCat(event,this)"><i class="fas fa-th-large"></i> All</a>
+    <a href="#" class="cat-link" data-cat="electronics" onclick="setCat(event,this)"><i class="fas fa-laptop"></i> Electronics</a>
+    <a href="#" class="cat-link" data-cat="fashion" onclick="setCat(event,this)"><i class="fas fa-tshirt"></i> Fashion</a>
+    <a href="#" class="cat-link" data-cat="home" onclick="setCat(event,this)"><i class="fas fa-home"></i> Home & Living</a>
+    <a href="#" class="cat-link" data-cat="beauty" onclick="setCat(event,this)"><i class="fas fa-spa"></i> Beauty</a>
+    <a href="#" class="cat-link" data-cat="sports" onclick="setCat(event,this)"><i class="fas fa-running"></i> Sports</a>
+    <a href="#" class="cat-link" data-cat="food" onclick="setCat(event,this)"><i class="fas fa-utensils"></i> Food</a>
+  </div>
+</div>
+
+<!-- ═══ PAGE WRAPPER ═══ -->
+<div class="page-wrapper">
+
+  <!-- SIDEBAR FILTERS -->
+  <aside class="sidebar">
+    <div class="sidebar-header"><i class="fas fa-filter"></i><span>Filters</span></div>
+
+    <!-- Categories -->
+    <div class="sidebar-section">Categories</div>
+    <button class="sidebar-link cat-active" data-cat="" onclick="setSidebarCat(event,this)"><i class="fas fa-th-large"></i> All Products</button>
+    <button class="sidebar-link" data-cat="electronics" onclick="setSidebarCat(event,this)"><i class="fas fa-laptop"></i> Electronics</button>
+    <button class="sidebar-link" data-cat="fashion" onclick="setSidebarCat(event,this)"><i class="fas fa-tshirt"></i> Fashion</button>
+    <button class="sidebar-link" data-cat="home" onclick="setSidebarCat(event,this)"><i class="fas fa-home"></i> Home & Living</button>
+    <button class="sidebar-link" data-cat="beauty" onclick="setSidebarCat(event,this)"><i class="fas fa-spa"></i> Beauty</button>
+    <button class="sidebar-link" data-cat="sports" onclick="setSidebarCat(event,this)"><i class="fas fa-running"></i> Sports</button>
+    <button class="sidebar-link" data-cat="food" onclick="setSidebarCat(event,this)"><i class="fas fa-utensils"></i> Food</button>
+    <button class="sidebar-link" data-cat="other" onclick="setSidebarCat(event,this)"><i class="fas fa-box"></i> Other</button>
+
+    <!-- Price Range -->
+    <div class="sidebar-section" style="margin-top:0.5rem">Price Range (₱)</div>
+    <div style="padding:0.4rem 1rem 1rem">
+      <div class="price-inputs">
+        <input type="number" class="price-input" id="minPrice" placeholder="Min" min="0" oninput="debouncedFilter()"/>
+        <span style="color:var(--muted);font-size:0.8rem;flex-shrink:0">—</span>
+        <input type="number" class="price-input" id="maxPrice" placeholder="Max" min="0" oninput="debouncedFilter()"/>
+      </div>
+      <!-- Quick price presets -->
+      <div style="display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:0.65rem">
+        <button class="filter-chip" onclick="setPreset(0,500)">Under ₱500</button>
+        <button class="filter-chip" onclick="setPreset(500,2000)">₱500–2k</button>
+        <button class="filter-chip" onclick="setPreset(2000,10000)">₱2k–10k</button>
+        <button class="filter-chip" onclick="setPreset(10000,'')">₱10k+</button>
+      </div>
+      <button class="btn btn-primary btn-sm" style="width:100%" onclick="applyFilters()">
+        <i class="fas fa-search"></i> Apply Filter
+      </button>
+      <button class="btn btn-outline btn-sm" style="width:100%;margin-top:0.4rem" onclick="clearAllFilters()">
+        <i class="fas fa-times"></i> Clear All
+      </button>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="sidebar-section" style="margin-top:0.25rem">My Account</div>
+    <a href="/cart.html" class="sidebar-link" id="sideCartLink" style="display:none"><i class="fas fa-shopping-cart"></i> My Cart</a>
+    <a href="/profile.html" class="sidebar-link" id="sideProfileLink" style="display:none"><i class="fas fa-user"></i> My Profile</a>
+    <div id="sideAdminLink" style="display:none">
+      <hr class="divider" style="margin:0.5rem 0"/>
+      <a href="/admin.html" class="sidebar-link"><i class="fas fa-cog"></i> Admin Dashboard</a>
+    </div>
+    <div id="sideLoginLink">
+      <hr class="divider" style="margin:0.5rem 0"/>
+      <a href="/login.html" class="sidebar-link"><i class="fas fa-sign-in-alt"></i> Login / Register</a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="content">
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+      <div class="hero-text">
+        <div class="hero-badge">🔥 Flash Sale</div>
+        <h2>Discover Amazing<br>Products Today</h2>
+        <p>Free shipping on orders over ₱500</p>
+        <a href="#" class="hero-cta" onclick="shopNow(event)"><i class="fas fa-bolt"></i> Shop Now</a>
+      </div>
+      <div class="hero-icon"><i class="fas fa-shopping-bag"></i></div>
+    </div>
+
+    <!-- Alert Box -->
+    <div id="alertBox"></div>
+
+    <!-- Active filter chips -->
+    <div class="filter-chips" id="filterChips"></div>
+
+    <!-- Toolbar -->
+    <div class="products-toolbar">
+      <div class="products-toolbar-left">
+        <span class="toolbar-title" id="pageTitle">All Products</span>
+        <span class="product-count-badge" id="productCount"></span>
+      </div>
+      <select class="toolbar-sort" id="sortSelect" onchange="loadProducts(1)">
+        <option value="">Default</option>
+        <option value="newest">Newest First</option>
+        <option value="price_asc">Price: Low to High</option>
+        <option value="price_desc">Price: High to Low</option>
+        <option value="name_asc">Name: A–Z</option>
+      </select>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid" id="productsGrid"><div class="spinner"></div></div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i>&nbsp; Added to cart!</div>
+
+<script>
+const API = '/api';
+let user = null;
+let state = { search: '', category: '', minPrice: '', maxPrice: '', sort: '', page: 1 };
+
+const CATEGORIES = {
+  '': 'All Products',
+  'electronics': 'Electronics',
+  'fashion': 'Fashion',
+  'home': 'Home & Living',
+  'beauty': 'Beauty',
+  'sports': 'Sports',
+  'food': 'Food',
+  'other': 'Other'
+};
+
+async function init() {
+  await checkAuth();
+  await updateCartCount();
+  await loadProducts(1);
+
+  document.getElementById('searchInput').addEventListener('input', e => {
+    clearTimeout(window._st);
+    window._st = setTimeout(() => { state.search = e.target.value.trim(); loadProducts(1); }, 380);
+  });
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') triggerSearch();
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.hdr-avatar-wrap')) document.getElementById('avatarDD')?.classList.remove('open');
+  });
+}
+
+function triggerSearch() {
+  state.search = document.getElementById('searchInput').value.trim();
+  loadProducts(1);
+}
+
+function shopNow(e) {
+  e.preventDefault();
+  const el = document.querySelector('.cat-link[data-cat="electronics"]');
+  if (el) setCat(e, el);
+}
+
+/* ── Category from top bar ── */
+function setCat(e, el) {
+  e.preventDefault();
+  if (!el) return;
+  const cat = el.dataset.cat;
+  state.category = cat;
+  state.page = 1;
+  // Sync top bar
+  document.querySelectorAll('.cat-link').forEach(l => l.classList.remove('active'));
+  el.classList.add('active');
+  // Sync sidebar
+  document.querySelectorAll('.sidebar-link[data-cat]').forEach(l => {
+    l.classList.toggle('cat-active', l.dataset.cat === cat);
+  });
+  document.getElementById('pageTitle').textContent = CATEGORIES[cat] || 'Products';
+  loadProducts(1);
+}
+
+/* ── Category from sidebar ── */
+function setSidebarCat(e, el) {
+  e.preventDefault();
+  const cat = el.dataset.cat;
+  state.category = cat;
+  state.page = 1;
+  // Sync sidebar
+  document.querySelectorAll('.sidebar-link[data-cat]').forEach(l => {
+    l.classList.toggle('cat-active', l.dataset.cat === cat);
+  });
+  // Sync top bar
+  document.querySelectorAll('.cat-link').forEach(l => {
+    l.classList.toggle('active', l.dataset.cat === cat);
+  });
+  document.getElementById('pageTitle').textContent = CATEGORIES[cat] || 'Products';
+  loadProducts(1);
+}
+
+/* ── Price presets ── */
+function setPreset(min, max) {
+  document.getElementById('minPrice').value = min || '';
+  document.getElementById('maxPrice').value = max || '';
+  state.minPrice = min !== '' ? String(min) : '';
+  state.maxPrice = max !== '' ? String(max) : '';
+  loadProducts(1);
+}
+
+let _filterTimer;
+function debouncedFilter() {
+  clearTimeout(_filterTimer);
+  _filterTimer = setTimeout(applyFilters, 500);
+}
+
+function applyFilters() {
+  state.minPrice = document.getElementById('minPrice').value;
+  state.maxPrice = document.getElementById('maxPrice').value;
+  loadProducts(1);
+}
+
+function clearAllFilters() {
+  state = { search: '', category: '', minPrice: '', maxPrice: '', sort: '', page: 1 };
+  document.getElementById('searchInput').value = '';
+  document.getElementById('minPrice').value = '';
+  document.getElementById('maxPrice').value = '';
+  document.getElementById('sortSelect').value = '';
+  document.querySelectorAll('.cat-link').forEach((l,i) => l.classList.toggle('active', i===0));
+  document.querySelectorAll('.sidebar-link[data-cat]').forEach((l,i) => {
+    l.classList.toggle('cat-active', i===0);
+  });
+  document.getElementById('pageTitle').textContent = 'All Products';
+  loadProducts(1);
+}
+
+function updateFilterChips() {
+  const chips = [];
+  if (state.category) chips.push({ label: CATEGORIES[state.category] || state.category, clear: () => { state.category=''; syncCatUI(''); loadProducts(1); } });
+  if (state.minPrice || state.maxPrice) {
+    const label = state.minPrice && state.maxPrice ? `₱${state.minPrice}–₱${state.maxPrice}` : state.minPrice ? `Min ₱${state.minPrice}` : `Max ₱${state.maxPrice}`;
+    chips.push({ label, clear: () => { state.minPrice=''; state.maxPrice=''; document.getElementById('minPrice').value=''; document.getElementById('maxPrice').value=''; loadProducts(1); } });
+  }
+  if (state.search) chips.push({ label: `"${state.search}"`, clear: () => { state.search=''; document.getElementById('searchInput').value=''; loadProducts(1); } });
+  const el = document.getElementById('filterChips');
+  el.innerHTML = chips.map((c,i) => `<span class="filter-chip" onclick="window._chipClear${i}()"><i class="fas fa-times"></i> ${esc(c.label)}</span>`).join('');
+  chips.forEach((c,i) => window[`_chipClear${i}`] = c.clear);
+}
+
+function syncCatUI(cat) {
+  document.querySelectorAll('.cat-link').forEach(l => l.classList.toggle('active', l.dataset.cat===cat));
+  document.querySelectorAll('.sidebar-link[data-cat]').forEach(l => l.classList.toggle('cat-active', l.dataset.cat===cat));
+  document.getElementById('pageTitle').textContent = CATEGORIES[cat] || 'All Products';
+}
+
+async function loadProducts(page) {
+  state.page = page;
+  state.sort = document.getElementById('sortSelect').value;
+  document.getElementById('productsGrid').innerHTML = '<div class="spinner"></div>';
+  updateFilterChips();
+  try {
+    const params = new URLSearchParams({
+      page, limit: 12,
+      search: state.search,
+      category: state.category,
+      sort: state.sort,
+    });
+    if (state.minPrice) params.append('min_price', state.minPrice);
+    if (state.maxPrice) params.append('max_price', state.maxPrice);
+
+    const r = await apiFetch(`${API}/products?${params}`);
+    if (!r.ok) throw new Error('Server error');
+    renderProducts(await r.json());
+  } catch(e) {
+    document.getElementById('productsGrid').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Failed to load products. Please try again.</p></div>`;
+  }
+}
+
+function renderProducts({ products, total, page, limit }) {
+  document.getElementById('productCount').textContent = `${total || 0} items`;
+  const grid = document.getElementById('productsGrid');
+
+  if (!products || !products.length) {
+    grid.innerHTML = `<div class="empty-state">
+      <i class="fas fa-search"></i>
+      <p>No products found matching your filters.</p>
+      <button class="btn btn-primary btn-sm" onclick="clearAllFilters()"><i class="fas fa-times"></i> Clear Filters</button>
+    </div>`;
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  const ratings  = ['★★★★★','★★★★☆','★★★★★','★★★☆☆','★★★★☆'];
+  const sold     = ['1.2k','345','892','2.4k','67','4.1k','211','530'];
+  const discounts= [null,'10% OFF','20% OFF',null,'15% OFF',null,'30% OFF',null,'5% OFF'];
+
+  grid.innerHTML = products.map((p, i) => {
+    const disc = discounts[i % discounts.length];
+    const orig = disc ? (Number(p.price) * 1.18).toFixed(2) : null;
+    const ok   = p.stock > 0;
+    const low  = ok && p.stock <= 5;
+    return `
+    <div class="product-card">
+      <div class="product-card-img">
+        <img
+          src="${p.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400'}"
+          alt="${esc(p.name)}"
+          onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400'"
+        />
+        ${disc && ok ? `<div class="product-discount-badge">${disc}</div>` : ''}
+        ${p.category ? `<div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.55);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15rem 0.45rem;border-radius:4px;text-transform:uppercase;letter-spacing:0.05em">${esc(p.category)}</div>` : ''}
+        <div class="product-wishlist"><i class="fas fa-heart"></i></div>
+        ${!ok ? `<div class="oos-overlay"><span class="oos-label">Out of Stock</span></div>` : ''}
+      </div>
+      <div class="product-card-body">
+        <h3 title="${esc(p.name)}">${esc(p.name)}</h3>
+        <p class="product-card-desc">${esc(p.description || '')}</p>
+        <div class="product-price-row">
+          <span class="product-price">₱${Number(p.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</span>
+          ${orig ? `<span class="product-price-orig">₱${Number(orig).toLocaleString('en-PH',{minimumFractionDigits:2})}</span>` : ''}
+        </div>
+        <div class="product-meta">
+          <span class="product-stars">${ratings[i % ratings.length]}</span>
+          <span class="product-sold">${sold[i % sold.length]} sold</span>
+        </div>
+        ${low ? `<div style="font-size:0.7rem;color:var(--warning);font-weight:600;margin-bottom:0.4rem"><i class="fas fa-exclamation-triangle"></i> Only ${p.stock} left!</div>` : ''}
+        ${ok
+          ? `<button class="btn-add-cart" onclick="addToCart(${p.id},this)"><i class="fas fa-cart-plus"></i> Add to Cart</button>`
+          : `<button class="btn-add-cart" disabled>Out of Stock</button>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+
+  // Pagination
+  const pages = Math.ceil((total || 0) / (limit || 12));
+  const pag = document.getElementById('pagination');
+  if (pages <= 1) { pag.innerHTML = ''; return; }
+  const start = Math.max(1, Math.min(page - 2, pages - 4));
+  const end   = Math.min(pages, start + 4);
+  let btns = `<button class="page-btn" onclick="loadProducts(${page-1})" ${page===1?'disabled':''}>‹ Prev</button>`;
+  if (start > 1) btns += `<button class="page-btn" onclick="loadProducts(1)">1</button>${start > 2 ? '<span style="padding:0 0.25rem;color:var(--muted)">…</span>' : ''}`;
+  for (let k = start; k <= end; k++) btns += `<button class="page-btn ${k===page?'active':''}" onclick="loadProducts(${k})">${k}</button>`;
+  if (end < pages) btns += `${end < pages-1 ? '<span style="padding:0 0.25rem;color:var(--muted)">…</span>' : ''}<button class="page-btn" onclick="loadProducts(${pages})">${pages}</button>`;
+  btns += `<button class="page-btn" onclick="loadProducts(${page+1})" ${page===pages?'disabled':''}>Next ›</button>`;
+  pag.innerHTML = btns;
+}
+
+async function addToCart(productId, btn) {
+  if (!user) { window.location.href = '/login.html'; return; }
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  btn.disabled = true;
+  const r = await apiFetch(`${API}/cart/add`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ product_id: productId, quantity: 1 })
+  });
+  btn.innerHTML = orig;
+  btn.disabled = false;
+  if (r.ok) {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2400);
+    await updateCartCount();
+  }
+}
+
+async function checkAuth() {
+  try {
+    const r = await apiFetch(`${API}/auth/me`);
+    if (!r.ok) return;
+    const d = await r.json(); user = d.user;
+    document.getElementById('authBtns').style.display = 'none';
+    document.getElementById('cartBtn').style.display = 'flex';
+    document.getElementById('avatarWrap').style.display = 'block';
+    document.getElementById('sideCartLink').style.display = 'flex';
+    document.getElementById('sideProfileLink').style.display = 'flex';
+    document.getElementById('sideLoginLink').style.display = 'none';
+    const initial = user.username.charAt(0).toUpperCase();
+    document.getElementById('avatarBtn').textContent = initial;
+    document.getElementById('avSmall').textContent = initial;
+    document.getElementById('avName').textContent = user.username;
+    document.getElementById('avHandle').textContent = '@' + user.username.toLowerCase();
+    if (user.role === 'admin') {
+      document.getElementById('adminNavLink').style.display = 'block';
+      document.getElementById('sideAdminLink').style.display = 'block';
+    }
+  } catch(e) {}
+}
+
+async function updateCartCount() {
+  if (!user) return;
+  try {
+    const r = await apiFetch(`${API}/cart`);
+    if (!r.ok) return;
+    const d = await r.json();
+    const n = d.items.reduce((s, i) => s + i.quantity, 0);
+    const b = document.getElementById('cartCount');
+    b.textContent = n; b.style.display = n > 0 ? 'flex' : 'none';
+  } catch(e) {}
+}
+
+function toggleDD(id) { document.getElementById(id).classList.toggle('open'); }
+// logout() provided by auth.js
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+init();
+</script>
+</body>
+</html>
