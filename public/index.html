@@ -391,6 +391,8 @@ function renderProducts({ products, total, page, limit }) {
           src="${p.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400'}"
           alt="${esc(p.name)}"
           onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400'"
+          onclick="openImgModal(this.src,'${esc(p.name)}')"
+          style="cursor:zoom-in"
         />
         ${disc && ok ? `<div class="product-discount-badge">${disc}</div>` : ''}
         ${p.category ? `<div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.55);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15rem 0.45rem;border-radius:4px;text-transform:uppercase;letter-spacing:0.05em">${esc(p.category)}</div>` : ''}
@@ -491,5 +493,30 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 
 init();
 </script>
+
+<!-- Image Viewer Modal -->
+<div id="imgModal" onclick="closeImgModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;padding:1rem;cursor:zoom-out">
+  <div onclick="event.stopPropagation()" style="position:relative;max-width:90vw;max-height:90vh">
+    <img id="imgModalSrc" src="" style="max-width:90vw;max-height:85vh;object-fit:contain;border-radius:12px;box-shadow:0 24px 64px rgba(0,0,0,0.5)"/>
+    <div id="imgModalName" style="text-align:center;color:#fff;margin-top:0.75rem;font-family:'Sora',sans-serif;font-weight:700;font-size:1rem"></div>
+    <button onclick="closeImgModal()" style="position:absolute;top:-14px;right:-14px;width:32px;height:32px;border-radius:50%;background:#fff;border:none;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.3)">✕</button>
+  </div>
+</div>
+
+<script>
+function openImgModal(src, name) {
+  document.getElementById('imgModalSrc').src = src;
+  document.getElementById('imgModalName').textContent = name;
+  const m = document.getElementById('imgModal');
+  m.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeImgModal() {
+  document.getElementById('imgModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeImgModal(); });
+</script>
+
 </body>
 </html>
