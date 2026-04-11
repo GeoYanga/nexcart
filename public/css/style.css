@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Sora:wght@600;700;800&display=swap');
 
 :root {
-  --brand:         #f4381b;
-  --brand-dark:    #c7200a;
-  --brand-light:   #fff1ef;
-  --brand-grad:    linear-gradient(135deg, #f4381b 0%, #ff6b35 100%);
+  --brand:         #2563eb;
+  --brand-dark:    #1d4ed8;
+  --brand-light:   #eff6ff;
+  --brand-grad:    linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
   --dark:          #111827;
   --mid:           #4b5563;
   --muted:         #9ca3af;
