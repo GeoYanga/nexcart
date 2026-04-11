@@ -386,13 +386,12 @@ function renderProducts({ products, total, page, limit }) {
     const low  = ok && p.stock <= 5;
     return `
     <div class="product-card">
-      <div class="product-card-img">
+      <div class="product-card-img" onclick="openImgModal(this.querySelector('img').src, this.closest('.product-card').querySelector('h3').textContent)" style="cursor:zoom-in">
         <img
           src="${p.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400'}"
           alt="${esc(p.name)}"
           onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400'"
-          onclick="openImgModal(this.src,'${esc(p.name)}')"
-          style="cursor:zoom-in"
+
         />
         ${disc && ok ? `<div class="product-discount-badge" style="pointer-events:none">${disc}</div>` : ''}
         ${p.category ? `<div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.55);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15rem 0.45rem;border-radius:4px;text-transform:uppercase;letter-spacing:0.05em;pointer-events:none">${esc(p.category)}</div>` : ''}
