@@ -2,20 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login — NexCart</title>
   <link rel="stylesheet" href="/css/style.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <script src="/auth.js"></script>
-  <style>
-    .auth-page { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%); }
-    .strength-bar { height: 4px; border-radius: 4px; transition: all 0.3s; margin-top: 0.35rem; }
-    .strength-text { font-size: 0.7rem; margin-top: 0.2rem; font-weight: 600; }
-    .input-icon-wrap { position: relative; }
-    .input-icon-wrap i.field-icon { position:absolute; left:0.75rem; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.85rem; }
-    .input-icon-wrap input { padding-left: 2.2rem !important; }
-  </style>
 </head>
 <body class="auth-page">
 <div class="auth-card">
@@ -24,119 +15,41 @@
     <span class="brand">NexCart</span>
   </div>
   <p class="auth-sub">Your trusted online marketplace</p>
-
-  <!-- Trust badges -->
-  <div style="display:flex;justify-content:center;gap:1.5rem;margin-bottom:1.25rem;padding:0.75rem;background:var(--brand-light);border-radius:8px">
-    <div style="text-align:center">
-      <i class="fas fa-shield-alt" style="color:var(--brand);display:block;margin-bottom:0.2rem"></i>
-      <span style="font-size:0.68rem;color:var(--mid);font-weight:600">Secure</span>
-    </div>
-    <div style="text-align:center">
-      <i class="fas fa-bolt" style="color:var(--brand);display:block;margin-bottom:0.2rem"></i>
-      <span style="font-size:0.68rem;color:var(--mid);font-weight:600">Fast</span>
-    </div>
-    <div style="text-align:center">
-      <i class="fas fa-lock" style="color:var(--brand);display:block;margin-bottom:0.2rem"></i>
-      <span style="font-size:0.68rem;color:var(--mid);font-weight:600">Private</span>
-    </div>
-  </div>
-
   <div class="tabs-pill">
     <button class="tab-pill-btn active" id="t1" onclick="sw('login')">Login</button>
     <button class="tab-pill-btn" id="t2" onclick="sw('register')">Register</button>
   </div>
-
   <div id="alertBox"></div>
-
-  <!-- LOGIN FORM -->
   <div id="loginForm">
-    <div class="form-group">
-      <label class="form-label">Email Address</label>
-      <div class="input-icon-wrap">
-        <i class="fas fa-envelope field-icon"></i>
-        <input type="email" class="form-control" id="lEmail" placeholder="you@email.com"/>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
+    <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-control" id="lEmail" placeholder="you@email.com"/></div>
+    <div class="form-group"><label class="form-label">Password</label>
       <div style="position:relative">
-        <div class="input-icon-wrap">
-          <i class="fas fa-lock field-icon"></i>
-          <input type="password" class="form-control" id="lPass" placeholder="••••••••" style="padding-right:2.5rem"/>
-        </div>
+        <input type="password" class="form-control" id="lPass" placeholder="••••••••" style="padding-right:2.5rem"/>
         <button onclick="togglePwd('lPass',this)" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted)"><i class="fas fa-eye"></i></button>
       </div>
     </div>
-    <div style="text-align:right;margin-top:-0.4rem;margin-bottom:0.75rem">
-      <span style="font-size:0.78rem;color:var(--brand);cursor:pointer;font-weight:600">Forgot password?</span>
-    </div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.65rem" onclick="login()">
-      <i class="fas fa-sign-in-alt"></i> Login
-    </button>
-    <div style="display:flex;align-items:center;gap:0.5rem;margin:1rem 0">
-      <hr style="flex:1;border:none;border-top:1px solid var(--border)"/>
-      <span style="font-size:0.73rem;color:var(--muted)">or</span>
-      <hr style="flex:1;border:none;border-top:1px solid var(--border)"/>
-    </div>
-    <p style="text-align:center;font-size:0.8rem;color:var(--muted)">Don't have an account? <a onclick="sw('register')" style="color:var(--brand);font-weight:700;cursor:pointer">Sign up free</a></p>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:0.5rem;padding:0.65rem" onclick="login()"><i class="fas fa-sign-in-alt"></i> Login</button>
   </div>
-
-  <!-- REGISTER FORM -->
   <div id="registerForm" style="display:none">
-    <div class="form-group">
-      <label class="form-label">Username</label>
-      <div class="input-icon-wrap">
-        <i class="fas fa-user field-icon"></i>
-        <input type="text" class="form-control" id="rUser" placeholder="johndoe" oninput="checkUsername(this)"/>
-      </div>
-      <div id="usernameHint" style="font-size:0.7rem;color:var(--muted);margin-top:0.2rem"></div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Email Address</label>
-      <div class="input-icon-wrap">
-        <i class="fas fa-envelope field-icon"></i>
-        <input type="email" class="form-control" id="rEmail" placeholder="you@email.com"/>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
+    <div class="form-group"><label class="form-label">Username</label><input type="text" class="form-control" id="rUser" placeholder="johndoe"/></div>
+    <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-control" id="rEmail" placeholder="you@email.com"/></div>
+    <div class="form-group"><label class="form-label">Password</label>
       <div style="position:relative">
-        <div class="input-icon-wrap">
-          <i class="fas fa-lock field-icon"></i>
-          <input type="password" class="form-control" id="rPass" placeholder="Min. 6 characters" style="padding-right:2.5rem" oninput="checkStrength(this.value)"/>
-        </div>
+        <input type="password" class="form-control" id="rPass" placeholder="Min. 6 characters" style="padding-right:2.5rem"/>
         <button onclick="togglePwd('rPass',this)" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted)"><i class="fas fa-eye"></i></button>
       </div>
-      <div class="strength-bar" id="strengthBar" style="background:var(--border);width:0%"></div>
-      <div class="strength-text" id="strengthText"></div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Confirm Password</label>
-      <div class="input-icon-wrap">
-        <i class="fas fa-lock field-icon"></i>
-        <input type="password" class="form-control" id="rPassConf" placeholder="Repeat password" oninput="checkMatch()"/>
-      </div>
-      <div id="matchHint" style="font-size:0.7rem;margin-top:0.2rem"></div>
-    </div>
-    <div style="display:flex;align-items:flex-start;gap:0.5rem;margin-bottom:0.85rem">
-      <input type="checkbox" id="agreeTerms" style="margin-top:0.2rem;accent-color:var(--brand)"/>
-      <label for="agreeTerms" style="font-size:0.78rem;color:var(--mid)">I agree to the <span style="color:var(--brand);font-weight:600">Terms of Service</span> and <span style="color:var(--brand);font-weight:600">Privacy Policy</span></label>
-    </div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.65rem" onclick="register()">
-      <i class="fas fa-user-plus"></i> Create Account
-    </button>
-    <p style="text-align:center;font-size:0.8rem;color:var(--muted);margin-top:0.85rem">Already have an account? <a onclick="sw('login')" style="color:var(--brand);font-weight:700;cursor:pointer">Login</a></p>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:0.5rem;padding:0.65rem" onclick="register()"><i class="fas fa-user-plus"></i> Create Account</button>
   </div>
-
-  <p style="text-align:center;margin-top:1rem;font-size:0.82rem;color:var(--muted)">
+  <p style="text-align:center;margin-top:1.3rem;font-size:0.82rem;color:var(--muted)">
     <a href="/" style="color:var(--brand);text-decoration:none;font-weight:600">← Back to Shop</a>
   </p>
 </div>
-
 <script>
 function getToken(){return localStorage.getItem('nexcart_token');}
 function setToken(t){localStorage.setItem('nexcart_token',t);}
 
+// Redirect if already logged in
 const tok=getToken();
 if(tok) fetch(`${API}/auth/me`,{headers:{'Authorization':'Bearer '+tok}}).then(r=>{if(r.ok)window.location.href='/';}).catch(()=>{});
 
@@ -147,95 +60,31 @@ function sw(t){
   document.getElementById('registerForm').style.display=t==='register'?'block':'none';
   document.getElementById('alertBox').innerHTML='';
 }
-
-function showAlert(m,t='error'){
-  document.getElementById('alertBox').innerHTML=`<div class="alert alert-${t}"><i class="fas fa-${t==='error'?'exclamation-circle':'check-circle'}"></i> ${m}</div>`;
-}
-
-function togglePwd(id,btn){
-  const inp=document.getElementById(id);
-  const show=inp.type==='password';
-  inp.type=show?'text':'password';
-  btn.innerHTML=`<i class="fas fa-${show?'eye-slash':'eye'}"></i>`;
-}
-
-function checkStrength(val){
-  const bar=document.getElementById('strengthBar');
-  const txt=document.getElementById('strengthText');
-  if(!val){bar.style.width='0';txt.textContent='';return;}
-  let score=0;
-  if(val.length>=6)score++;
-  if(val.length>=10)score++;
-  if(/[A-Z]/.test(val))score++;
-  if(/[0-9]/.test(val))score++;
-  if(/[^A-Za-z0-9]/.test(val))score++;
-  const levels=[
-    {w:'20%',c:'#ef4444',t:'Very Weak'},
-    {w:'40%',c:'#f97316',t:'Weak'},
-    {w:'60%',c:'#eab308',t:'Fair'},
-    {w:'80%',c:'#3b82f6',t:'Strong'},
-    {w:'100%',c:'#10b981',t:'Very Strong'}
-  ];
-  const l=levels[Math.min(score,4)];
-  bar.style.width=l.w; bar.style.background=l.c;
-  txt.textContent=l.t; txt.style.color=l.c;
-}
-
-function checkMatch(){
-  const p=document.getElementById('rPass').value;
-  const c=document.getElementById('rPassConf').value;
-  const el=document.getElementById('matchHint');
-  if(!c)return el.textContent='';
-  if(p===c){el.textContent='✓ Passwords match';el.style.color='var(--teal)';}
-  else{el.textContent='✗ Passwords do not match';el.style.color='var(--danger)';}
-}
-
-function checkUsername(inp){
-  const val=inp.value.trim();
-  const el=document.getElementById('usernameHint');
-  if(val.length<3){el.textContent='Username must be at least 3 characters';el.style.color='var(--muted)';}
-  else{el.textContent='✓ Looks good!';el.style.color='var(--teal)';}
-}
+function showAlert(m,t='error'){document.getElementById('alertBox').innerHTML=`<div class="alert alert-${t}"><i class="fas fa-${t==='error'?'exclamation-circle':'check-circle'}"></i> ${m}</div>`;}
+function togglePwd(id,btn){const inp=document.getElementById(id);const show=inp.type==='password';inp.type=show?'text':'password';btn.innerHTML=`<i class="fas fa-${show?'eye-slash':'eye'}"></i>`;}
 
 async function login(){
-  const email=document.getElementById('lEmail').value.trim();
-  const password=document.getElementById('lPass').value;
+  const email=document.getElementById('lEmail').value.trim(),password=document.getElementById('lPass').value;
   if(!email||!password)return showAlert('Please fill in all fields.');
-  const btn=event.target; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Logging in…'; btn.disabled=true;
   const r=await fetch(`${API}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
   const d=await r.json();
-  btn.innerHTML='<i class="fas fa-sign-in-alt"></i> Login'; btn.disabled=false;
   if(!r.ok)return showAlert(d.error||'Login failed.');
   setToken(d.token);
   showAlert('Login successful! Redirecting…','success');
   setTimeout(()=>window.location.href='/',900);
 }
-
 async function register(){
-  const username=document.getElementById('rUser').value.trim();
-  const email=document.getElementById('rEmail').value.trim();
-  const password=document.getElementById('rPass').value;
-  const conf=document.getElementById('rPassConf').value;
-  const agree=document.getElementById('agreeTerms').checked;
+  const username=document.getElementById('rUser').value.trim(),email=document.getElementById('rEmail').value.trim(),password=document.getElementById('rPass').value;
   if(!username||!email||!password)return showAlert('Please fill in all fields.');
-  if(username.length<3)return showAlert('Username must be at least 3 characters.');
   if(password.length<6)return showAlert('Password must be at least 6 characters.');
-  if(password!==conf)return showAlert('Passwords do not match.');
-  if(!agree)return showAlert('Please agree to the Terms of Service.');
-  const btn=event.target; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Creating…'; btn.disabled=true;
   const r=await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,email,password})});
   const d=await r.json();
-  btn.innerHTML='<i class="fas fa-user-plus"></i> Create Account'; btn.disabled=false;
   if(!r.ok)return showAlert(d.error||'Registration failed.');
   showAlert('Account created! Please login.','success');
   setTimeout(()=>sw('login'),1200);
 }
-
 document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'){
-    if(document.getElementById('loginForm').style.display!=='none')login();
-    else register();
-  }
+  if(e.key==='Enter'){if(document.getElementById('loginForm').style.display!=='none')login();else register();}
 });
 </script>
 </body>
