@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Account — NexCart</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="/auth.js"></script>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-top">
+    <a href="/" class="logo-area">
+      <div class="logo-icon-wrap"><i class="fas fa-bolt"></i></div>
+      <span class="logo-title">NexCart</span>
+    </a>
+    <div class="header-search">
+      <input type="text" placeholder="Search products…" autocomplete="off" onclick="window.location.href='/'"/>
+      <button class="header-search-btn" onclick="window.location.href='/'"><i class="fas fa-search"></i></button>
+    </div>
+    <div class="header-actions">
+      <a href="/cart.html" class="hdr-btn">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="btn-label">Cart</span>
+        <span class="cart-badge" id="cartCount" style="display:none">0</span>
+      </a>
+      <div class="hdr-avatar-wrap">
+        <button class="hdr-avatar" id="avatarBtn" onclick="toggleDD()"></button>
+        <div class="avatar-dropdown" id="avatarDD">
+          <div class="av-header">
+            <div class="av-info">
+              <div class="av-avatar-sm" id="avSmall"></div>
+              <div class="av-text">
+                <span class="uname" id="avName"></span>
+                <span class="handle" id="avHandle"></span>
+              </div>
+            </div>
+          </div>
+          <div class="av-menu">
+            <a href="/profile.html" class="av-item" style="background:var(--brand-light);color:var(--brand)"><i class="fas fa-user"></i> My Account</a>
+            <a href="/cart.html" class="av-item"><i class="fas fa-shopping-bag"></i> My Orders</a>
+            <div id="adminLink" style="display:none"><a href="/admin.html" class="av-item"><i class="fas fa-cog"></i> Admin Panel</a></div>
+            <hr class="av-divider"/>
+            <button class="av-item danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- BREADCRUMB -->
+<div style="max-width:1000px;margin:0 auto;padding:1rem 1.5rem 0;font-size:0.82rem;color:var(--muted)">
+  <a href="/" style="color:var(--mid);text-decoration:none">Home</a> › <span style="color:var(--dark);font-weight:600">My Account</span>
+</div>
+
+<div class="profile-layout">
+  <!-- LEFT: Profile Card -->
+  <div>
+    <div class="profile-card">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar-big" id="bigAvatar"></div>
+        <div class="profile-username" id="profileUser"></div>
+        <div class="profile-role" id="profileRole"></div>
+      </div>
+      <div class="av-menu" style="padding:0.5rem 0">
+        <a href="/profile.html" class="av-item" style="background:var(--brand-light);color:var(--brand)"><i class="fas fa-user"></i> My Profile</a>
+        <a href="/cart.html" class="av-item"><i class="fas fa-shopping-cart"></i> My Cart</a>
+        <div id="adminSideLink" style="display:none">
+          <hr class="av-divider"/>
+          <a href="/admin.html" class="av-item"><i class="fas fa-cog"></i> Admin Dashboard</a>
+        </div>
+        <hr class="av-divider"/>
+        <button class="av-item danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Content -->
+  <div>
+    <!-- Account Info -->
+    <div class="cart-card" style="margin-bottom:1.25rem">
+      <div class="cart-card-head"><i class="fas fa-user-circle"></i> Account Information</div>
+      <div style="padding:1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="accountInfo">
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+    <!-- Change Password -->
+    <div class="cart-card" style="margin-bottom:1.25rem">
+      <div class="cart-card-head" style="cursor:pointer" onclick="toggleSection('pwdSection')">
+        <i class="fas fa-lock"></i> Change Password
+        <i class="fas fa-chevron-down" style="margin-left:auto;font-size:0.8rem;color:var(--muted)" id="pwdChevron"></i>
+      </div>
+      <div id="pwdSection" style="display:none;padding:1.25rem">
+        <div id="pwdAlert"></div>
+        <div class="form-group">
+          <label class="form-label">Current Password</label>
+          <input type="password" class="form-control" id="curPwd" placeholder="Enter current password"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input type="password" class="form-control" id="newPwd" placeholder="Min. 6 characters"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <input type="password" class="form-control" id="confPwd" placeholder="Repeat new password"/>
+        </div>
+        <button class="btn btn-primary" onclick="changePassword()"><i class="fas fa-save"></i> Update Password</button>
+      </div>
+    </div>
+
+    <!-- Orders -->
+    <div class="cart-card">
+      <div class="cart-card-head"><i class="fas fa-receipt"></i> My Order History</div>
+      <div style="padding:0.75rem" id="ordersContent"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER ITEMS MODAL -->
+<div class="modal-overlay" id="itemsModal" onclick="if(event.target.id==='itemsModal')closeModal()">
+  <div class="modal">
+    <h2><i class="fas fa-receipt"></i> Order #<span id="modalOrderId"></span></h2>
+    <div id="modalBody" style="max-height:350px;overflow-y:auto"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let user=null;
+
+async function init(){
+  const r=await apiFetch(`${API}/auth/me`);
+  if(!r.ok){window.location.href='/login.html';return;}
+  const d=await r.json();user=d.user;
+  // Header
+  const init=user.username.charAt(0).toUpperCase();
+  document.getElementById('avatarBtn').textContent=init;
+  document.getElementById('avSmall').textContent=init;
+  document.getElementById('avName').textContent=user.username;
+  document.getElementById('avHandle').textContent='@'+user.username.toLowerCase();
+  // Big avatar
+  document.getElementById('bigAvatar').textContent=init;
+  document.getElementById('profileUser').textContent=user.username;
+  if(user.role==='admin'){
+    document.getElementById('adminLink').style.display='block';
+    document.getElementById('adminSideLink').style.display='block';
+  }
+  // Cart count
+  updateCartCount();
+  // Load profile & orders
+  const [pr,or]=await Promise.all([apiFetch(`${API}/users/me`),apiFetch(`${API}/orders/my`)]);
+  const p=await pr.json(), orders=await or.json();
+  document.getElementById('profileRole').textContent=p.role.toUpperCase();
+  document.getElementById('accountInfo').innerHTML=`
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem">Username</div>
+      <div style="font-weight:600">${esc(p.username)}</div>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem">Email</div>
+      <div style="font-weight:600">${esc(p.email)}</div>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem">Role</div>
+      <div><span class="badge ${p.role==='admin'?'badge-shipped':'badge-completed'}">${p.role.toUpperCase()}</span></div>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem">Member Since</div>
+      <div style="font-weight:600">${new Date(p.created_at).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'})}</div>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem">Total Orders</div>
+      <div style="font-weight:700;font-size:1.1rem;color:var(--brand)">${orders.length}</div>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem">Total Spent</div>
+      <div style="font-weight:700;font-size:1.1rem;color:var(--brand)">₱${orders.reduce((s,o)=>s+Number(o.total_amount),0).toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
+    </div>`;
+  renderOrders(orders);
+}
+
+function renderOrders(orders){
+  const el=document.getElementById('ordersContent');
+  if(!orders.length){
+    el.innerHTML=`<div style="text-align:center;padding:2.5rem 1rem">
+      <i class="fas fa-shopping-bag" style="font-size:2.5rem;color:var(--border);margin-bottom:0.75rem;display:block"></i>
+      <p style="color:var(--muted);margin-bottom:1rem">No orders yet</p>
+      <a href="/" class="btn btn-primary btn-sm"><i class="fas fa-store"></i> Start Shopping</a>
+    </div>`;return;
+  }
+  el.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>Order ID</th><th>Total</th><th>Status</th><th>Date</th><th>Details</th></tr></thead>
+    <tbody>${orders.map(o=>`<tr>
+      <td><strong>#${o.id}</strong></td>
+      <td style="font-weight:700;color:var(--brand)">₱${Number(o.total_amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</td>
+      <td><span class="badge badge-${o.status}">${o.status}</span></td>
+      <td style="color:var(--muted)">${new Date(o.created_at).toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'})}</td>
+      <td><button class="btn btn-outline btn-sm" onclick='showOrderItems(${o.id},${JSON.stringify(o.items)})'><i class="fas fa-eye"></i> View</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function showOrderItems(orderId,items){
+  document.getElementById('modalOrderId').textContent=orderId;
+  document.getElementById('modalBody').innerHTML=`
+    <div style="margin-bottom:0.75rem">
+      ${items.map(i=>`<div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+        <img src="${i.image_url||''}" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=60'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;border:1px solid var(--border)"/>
+        <div style="flex:1"><div style="font-weight:600;font-size:0.85rem">${esc(i.name)}</div><div style="font-size:0.75rem;color:var(--muted)">Qty: ${i.quantity} × ₱${Number(i.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</div></div>
+        <div style="font-weight:700;color:var(--brand)">₱${(i.price*i.quantity).toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
+      </div>`).join('')}
+    </div>`;
+  document.getElementById('itemsModal').classList.add('open');
+}
+function closeModal(){document.getElementById('itemsModal').classList.remove('open');}
+
+function toggleSection(id){
+  const el=document.getElementById(id);
+  const open=el.style.display==='none';
+  el.style.display=open?'block':'none';
+  document.getElementById('pwdChevron').style.transform=open?'rotate(180deg)':'';
+}
+
+async function changePassword(){
+  const cur=document.getElementById('curPwd').value;
+  const nw=document.getElementById('newPwd').value;
+  const conf=document.getElementById('confPwd').value;
+  const alertEl=document.getElementById('pwdAlert');
+  if(!cur||!nw||!conf){alertEl.innerHTML='<div class="alert alert-error">All fields required.</div>';return;}
+  if(nw!==conf){alertEl.innerHTML='<div class="alert alert-error">Passwords do not match.</div>';return;}
+  if(nw.length<6){alertEl.innerHTML='<div class="alert alert-error">New password must be at least 6 characters.</div>';return;}
+  const r=await apiFetch(`${API}/users/me/password`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({current_password:cur,new_password:nw})});
+  const d=await r.json();
+  if(!r.ok){alertEl.innerHTML=`<div class="alert alert-error">${d.error||'Failed to update password.'}</div>`;return;}
+  alertEl.innerHTML='<div class="alert alert-success"><i class="fas fa-check-circle"></i> Password updated successfully!</div>';
+  document.getElementById('curPwd').value='';document.getElementById('newPwd').value='';document.getElementById('confPwd').value='';
+}
+
+function toggleDD(){document.getElementById('avatarDD').classList.toggle('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.hdr-avatar-wrap'))document.getElementById('avatarDD').classList.remove('open');});
+
+async function updateCartCount(){
+  try{
+    const r=await apiFetch(`${API}/cart`);if(!r.ok)return;
+    const d=await r.json();const n=d.items.reduce((s,i)=>s+i.quantity,0);
+    const b=document.getElementById('cartCount');b.textContent=n;b.style.display=n>0?'flex':'none';
+  }catch(e){}
+}
+// logout() provided by auth.js
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+init();
+</script>
+</body>
+</html>
