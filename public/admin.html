@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Admin Dashboard - developed by jsmclaveria -->
+<!-- Features: User Management, Product Management, Order Management -->
   <meta charset="UTF-8"/>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin — NexCart</title>
@@ -87,7 +89,18 @@
   <div class="tab-panel active" id="usersPanel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
       <span class="section-head" style="margin:0;border:none;padding:0"><i class="fas fa-users"></i> All Users</span>
-      <button class="btn btn-primary btn-sm" onclick="openUserModal()"><i class="fas fa-user-plus"></i> Add User</button>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <div style="position:relative">
+          <i class="fas fa-search" style="position:absolute;left:0.6rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.8rem"></i>
+          <input type="text" id="userSearch" placeholder="Search users…" oninput="filterUsers()" style="border:1px solid var(--border);border-radius:6px;padding:0.38rem 0.75rem 0.38rem 2rem;font-size:0.8rem;outline:none;font-family:DM Sans,sans-serif;width:180px"/>
+        </div>
+        <select id="roleFilter" onchange="filterUsers()" style="border:1px solid var(--border);border-radius:6px;padding:0.38rem 0.6rem;font-size:0.8rem;outline:none;font-family:DM Sans,sans-serif;cursor:pointer">
+          <option value="">All Roles</option>
+          <option value="user">Users</option>
+          <option value="admin">Admins</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="openUserModal()"><i class="fas fa-user-plus"></i> Add User</button>
+      </div>
     </div>
     <div id="usersTable"><div class="spinner"></div></div>
   </div>
@@ -96,7 +109,23 @@
   <div class="tab-panel" id="productsPanel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
       <span class="section-head" style="margin:0;border:none;padding:0"><i class="fas fa-box"></i> All Products</span>
-      <button class="btn btn-primary btn-sm" onclick="openProductModal(null)"><i class="fas fa-plus"></i> Add Product</button>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <div style="position:relative">
+          <i class="fas fa-search" style="position:absolute;left:0.6rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.8rem"></i>
+          <input type="text" id="productSearch" placeholder="Search products…" oninput="filterProducts()" style="border:1px solid var(--border);border-radius:6px;padding:0.38rem 0.75rem 0.38rem 2rem;font-size:0.8rem;outline:none;font-family:DM Sans,sans-serif;width:180px"/>
+        </div>
+        <select id="catFilter" onchange="filterProducts()" style="border:1px solid var(--border);border-radius:6px;padding:0.38rem 0.6rem;font-size:0.8rem;outline:none;font-family:DM Sans,sans-serif;cursor:pointer">
+          <option value="">All Categories</option>
+          <option value="electronics">Electronics</option>
+          <option value="fashion">Fashion</option>
+          <option value="home">Home & Living</option>
+          <option value="beauty">Beauty</option>
+          <option value="sports">Sports</option>
+          <option value="food">Food</option>
+          <option value="other">Other</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="openProductModal(null)"><i class="fas fa-plus"></i> Add Product</button>
+      </div>
     </div>
     <div id="productsTable"><div class="spinner"></div></div>
   </div>
@@ -231,6 +260,30 @@ function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function toggleDD(){document.getElementById('avatarDD').classList.toggle('open');}
 document.addEventListener('click',e=>{if(!e.target.closest('.hdr-avatar-wrap'))document.getElementById('avatarDD').classList.remove('open');});
+let allUsers=[], allProducts=[];
+
+function filterUsers(){
+  const q=document.getElementById('userSearch').value.toLowerCase();
+  const role=document.getElementById('roleFilter').value;
+  const filtered=allUsers.filter(u=>{
+    const matchQ=!q||u.username.toLowerCase().includes(q)||u.email.toLowerCase().includes(q);
+    const matchR=!role||u.role===role;
+    return matchQ&&matchR;
+  });
+  renderUsersTable(filtered);
+}
+
+function filterProducts(){
+  const q=document.getElementById('productSearch').value.toLowerCase();
+  const cat=document.getElementById('catFilter').value;
+  const filtered=allProducts.filter(p=>{
+    const matchQ=!q||p.name.toLowerCase().includes(q);
+    const matchC=!cat||p.category===cat;
+    return matchQ&&matchC;
+  });
+  renderProductsTable(filtered);
+}
+
 function showAlert(msg,type='success'){const el=document.getElementById('alertBox');el.innerHTML=`<div class="alert alert-${type}"><i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'}"></i> ${msg}</div>`;setTimeout(()=>el.innerHTML='',3500);}
 
 /* ─── USERS ─── */
@@ -238,8 +291,13 @@ async function loadUsers(){
   const r=await apiFetch(`${API}/users`);
   if(!r.ok){document.getElementById('usersTable').innerHTML='<p style="color:var(--danger);padding:1rem">Failed to load users.</p>';return;}
   const users=await r.json();
+  allUsers=users;
   document.getElementById('statUsers').textContent=users.length;
   if(!users.length){document.getElementById('usersTable').innerHTML='<p style="color:var(--muted);padding:1rem">No users found.</p>';return;}
+  renderUsersTable(users);
+}
+function renderUsersTable(users){
+  if(!users.length){document.getElementById('usersTable').innerHTML='<p style="color:var(--muted);padding:1rem">No users match your search.</p>';return;}
   document.getElementById('usersTable').innerHTML=`<div class="table-wrap"><table>
     <thead><tr><th>#</th><th>User</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
     <tbody>${users.map(u=>`<tr>
@@ -309,11 +367,16 @@ async function loadProducts(){
   const r=await apiFetch(`${API}/products?limit=200`);
   if(!r.ok){document.getElementById('productsTable').innerHTML='<p style="color:var(--danger);padding:1rem">Failed to load products.</p>';return;}
   const d=await r.json();
+  allProducts=d.products;
   document.getElementById('statProducts').textContent=d.total||d.products.length;
   if(!d.products.length){document.getElementById('productsTable').innerHTML='<p style="color:var(--muted);padding:1rem">No products yet.</p>';return;}
+  renderProductsTable(d.products);
+}
+function renderProductsTable(products){
+  if(!products.length){document.getElementById('productsTable').innerHTML='<p style="color:var(--muted);padding:1rem">No products match your search.</p>';return;}
   document.getElementById('productsTable').innerHTML=`<div class="table-wrap"><table>
     <thead><tr><th>#</th><th>Product</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>
-    <tbody>${d.products.map(p=>`<tr>
+    <tbody>${products.map(p=>`<tr>
       <td style="color:var(--muted)">${p.id}</td>
       <td><div style="display:flex;align-items:center;gap:0.65rem">
         <img src="${p.image_url||''}" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=60'" style="width:42px;height:42px;border-radius:8px;object-fit:cover;border:1px solid var(--border)"/>
@@ -431,5 +494,6 @@ function viewOrder(id,items){
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 init();
 </script>
+<div style="text-align:center;padding:1.5rem;font-size:0.75rem;color:var(--muted);border-top:1px solid var(--border);margin-top:2rem">NexCart Admin Panel &copy; 2025 — Developed by jsmclaveria</div>
 </body>
 </html>
